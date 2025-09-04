@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mellow_labs Pill Dispenser</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles and Resets */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 15px; background-color: #f8f9fa; color: #495057; line-height: 1.5;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    /* Dark Mode */
+    body.dark-mode { background-color: #121212; color: #e0e0e0; }
+    body.dark-mode h1, body.dark-mode h2 { color: #e0e0e0; }
+
+    /* Container Grid */
+    .container-grid { display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 15px auto; padding: 0 20px; }
+
+    /* Block Container */
+    .container-block { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: transform .2s ease-in-out, background-color .3s; border-top: 5px solid; }
+    .container-block:hover { transform: scale(1.01); }
+    body.dark-mode .container-block { background: #101010; }
+
+    /* Block Header */
+    .container-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 12px 20px; border-top-left-radius: 8px; border-top-right-radius: 8px; }
+
+    /* Buttons */
+    button { color:#fff; border: none; border-radius: 6px; padding: 10px 16px; font-size:.9rem; cursor:pointer; transition: background-color .3s ease; box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+    button:focus { outline: none; box-shadow: 0 0 0 3px rgba(0,123,255,.5); }
+
+    /* Header button colours per container */
+    #container1-block .container-header button { background:#005aba; }  #container1-block .container-header button:hover { background:#0065d2; }
+    #container2-block .container-header button { background:#a50010; }  #container2-block .container-header button:hover { background:#b90012; }
+    #container3-block .container-header button { background:#e0a800; color:#212529; }  #container3-block .container-header button:hover { background:#d39e00; }
+    #container4-block .container-header button { background:#007a1d; }  #container4-block .container-header button:hover { background:#1e7e34; }
+
+    /* Table */
+    table { width:100%; border-collapse: collapse; margin-top:10px; background:#fff; border-radius:8px; overflow:hidden; box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+    body.dark-mode table { background:#1e1e1e; }
+    th, td { border:none; padding:12px; text-align:left; font-size:.85rem; vertical-align: middle; border-bottom:1px solid #f1f3f5; }
+    body.dark-mode th, body.dark-mode td { border-bottom:1px solid #333; }
+    th { background:#e9ecef; color:#495057; font-weight:500; text-transform: uppercase; letter-spacing:.5px; }
+    body.dark-mode th { background:#333; color:#e0e0e0; }
+    th:first-child, td:first-child { padding-left:15px; }
+    th:last-child, td:last-child { padding-right:15px; text-align:center; }
+    tr:last-child td { border-bottom:none; }
+
+    /* Gear menu */
+    .gear-icon { cursor:pointer; font-size:1.2rem; margin-left:6px; user-select:none; color:#6c757d; transition: color .2s; }
+    .gear-icon:hover { color:#495057; }
+    .gear-menu { position: fixed; background:#fff; border:1px solid #ced4da; border-radius:6px; padding:6px 0; display:none; z-index:1002; min-width:100px; box-shadow:0 3px 8px rgba(0,0,0,.1); }
+    body.dark-mode .gear-menu { background:#2c2c2c; border-color:#444; }
+    .gear-menu button { display:block; width:100%; text-align:left; background:none; color:#495057; border:none; padding:8px 12px; font-size:.8rem; cursor:pointer; transition: background-color .2s; }
+    body.dark-mode .gear-menu button { color:#e0e0e0; }
+    .gear-menu button:hover { background:#f8f9fa; }
+    body.dark-mode .gear-menu button:hover { background:#444; }
+    .gear-menu button:nth-child(2) { background:#dc3545; color:#fff; }
+    .gear-menu button:nth-child(2):hover { background:#c82333; }
+
+    /* Overlay */
+    #overlay { position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,.5); z-index:1001; display:none; }
+
+    /* Dialogs */
+    #scheduleDialog { position:fixed; top:50%; left:50%; transform: translate(-50%,-50%); width:300px; background: rgba(255,255,255,.98); backdrop-filter: blur(8px); border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,.2); z-index:1002; display:none; overflow:hidden; transition: background .3s, color .3s; }
+    body.dark-mode #scheduleDialog { background: rgba(26,26,26,.98); }
+    #scheduleDialog .header { background: var(--accent-color,#007bff); color:#fff; padding:8px 10px; display:flex; justify-content: space-between; align-items:center; }
+    #scheduleDialog .header h2 { font-size:1.2rem; margin:0; }
+    #scheduleDialog .header .close-btn { cursor:pointer; font-size:1.2rem; }
+    #scheduleDialog .content { padding:10px; text-align:center; transition: color .3s; }
+    #scheduleDialog .everyday-container { text-align:center; margin-bottom:8px; }
+    #scheduleDialog .everyday-container button { padding:4px 8px; font-size:.85rem; border:1px solid #ccc; background:transparent; border-radius:5px; cursor:pointer; color:#333; transition: background-color .3s, color .3s; }
+    body.dark-mode #scheduleDialog .everyday-container button { color:#e0e0e0; border-color:#555; }
+    #scheduleDialog .everyday-container button.active { background: var(--accent-color,#007bff); color:#fff; border-color: var(--accent-color,#007bff); }
+    #scheduleDialog .days-grid { display:grid; grid-template-columns: repeat(4,1fr); gap:4px; margin-bottom:8px; }
+    #scheduleDialog .days-grid button { padding:4px 8px; font-size:.85rem; border:1px solid #ccc; background:transparent; color:#333; border-radius:5px; cursor:pointer; transition: background-color .3s, color .3s; }
+    body.dark-mode #scheduleDialog .days-grid button { color:#e0e0e0; border-color:#555; }
+    #scheduleDialog .days-grid button.active { background: var(--accent-color,#007bff); color:#fff; border-color: var(--accent-color,#007bff); }
+
+    /* Pill count */
+    #scheduleDialog .pill-count label { color:#333; font-weight:bold; margin-right:5px; }
+    body.dark-mode #scheduleDialog .pill-count label { color:#e0e0e0; }
+    #scheduleDialog .pill-count { margin-bottom:10px; }
+    #scheduleDialog .pill-counter { display:inline-flex; align-items:center; border:1px solid #ddd; border-radius:4px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); margin-left:5px; background:#fff; transition: background-color .3s, border-color .3s; }
+    body.dark-mode #scheduleDialog .pill-counter { border-color:#555; box-shadow:0 1px 3px rgba(255,255,255,.1); background:#1e1e1e; }
+    #scheduleDialog .pill-counter button { background:#fdfdfd; border:none; width:40px; height:40px; font-size:20px; line-height:1; cursor:pointer; color:#333; transition: background-color .2s; }
+    #scheduleDialog .pill-counter button:hover { background:#e9ecef; }
+    body.dark-mode #scheduleDialog .pill-counter button { background:#2c2c2c; color:#e0e0e0; }
+    body.dark-mode #scheduleDialog .pill-counter button:hover { background:#444; }
+    #scheduleDialog .pill-counter input { width:60px; text-align:center; border:none; outline:none; font-size:1rem; color:#333; background:#fff; }
+    body.dark-mode #scheduleDialog .pill-counter input { background:#1e1e1e; color:#e0e0e0; }
+
+    /* Time inputs */
+    #scheduleDialog .time-inputs div { margin-bottom:6px; display:flex; align-items:center; justify-content:center; }
+    #scheduleDialog .time-inputs label { font-size:.8rem; margin-right:5px; color:#333; }
+    #scheduleDialog .time-inputs input[type="time"] { padding:3px; font-size:.9rem; width:80px; color:#333; }
+    body.dark-mode #scheduleDialog .time-inputs label, body.dark-mode #scheduleDialog .time-inputs input[type="time"] { color:#e0e0e0; }
+    body.dark-mode #scheduleDialog .time-inputs input[type="time"] { background:#2c2c2c; border:1px solid #555; }
+
+    /* Footer buttons */
+    #scheduleDialog .footer { display:flex; justify-content:center; gap:5px; padding:8px 10px; border-top:1px solid #eee; }
+    #scheduleDialog .footer button.save-btn { background: var(--accent-color,#007bff); }
+    #scheduleDialog .footer button.cancel-btn { background:#ccc; color:#333; }
+
+    /* Settings Dialog */
+    #settingsDialog { position:fixed; top:50%; left:50%; transform: translate(-50%,-50%); background:#fff; width:90%; max-width:350px; border-radius:10px; padding:25px; box-shadow:0 6px 15px rgba(0,0,0,.15); z-index:1002; display:none; border-top:8px solid; }
+    body.dark-mode #settingsDialog { background:#2c2c2c; }
+    #settingsDialog h2 { margin-bottom:20px; text-align:center; font-size:1.5rem; }
+
+    /* Light-mode container colours */
+    #container1-block { background-color:#b1dbff; }
+    #container2-block { background-color:#fcbbc5; }
+    #container3-block { background-color:#f8e9b6; }
+    #container4-block { background-color:#b6fcbc; }
+    #container1-block .container-header { background-color:#f0f8ff; }
+    #container2-block .container-header { background-color:#ffebee; }
+    #container3-block .container-header { background-color:#fff8e1; }
+    #container4-block .container-header { background-color:#e8f5e9; }
+
+    /* Dark-mode overrides for blocks/headers */
+    body.dark-mode #container1-block,
+    body.dark-mode #container2-block,
+    body.dark-mode #container3-block,
+    body.dark-mode #container4-block { background:#1a1a1a !important; }
+    body.dark-mode #container1-block .container-header,
+    body.dark-mode #container2-block .container-header,
+    body.dark-mode #container3-block .container-header,
+    body.dark-mode #container4-block .container-header { background:#1a1a1a !important; }
+    body.dark-mode #container1-block .container-header h2,
+    body.dark-mode #container2-block .container-header h2,
+    body.dark-mode #container3-block .container-header h2,
+    body.dark-mode #container4-block .container-header h2 { color:#e0e0e0 !important; }
+
+    /* Collapsible settings panel */
+    .collapsible-header { background:#8b00c2; color:#fff; padding:10px 15px; cursor:pointer; border-radius:10px 10px 0 0; max-width:760px; margin:20px auto 0; font-size:1.1rem; text-align:center; }
+    .collapsible-content { background:#fff; border-radius:0 0 10px 10px; box-shadow:0 4px 10px rgba(0,0,0,.08); max-width:760px; margin:0 auto 20px; padding:20px; display:none; }
+    body.dark-mode .collapsible-content { background:#1e1e1e; }
+    .collapsible-content form { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .collapsible-content label { font-size:1rem; }
+    .collapsible-content select, .collapsible-content input[type="text"] { padding:8px; font-size:1rem; width:250px; }
+    .collapsible-content button { background:#8b00c2; color:#fff; border:none; border-radius:6px; padding:8px 12px; font-size:1rem; cursor:pointer; }
+    .collapsible-content button:hover { background:#8e44ad; }
+
+    h1 { text-align:center; }
+    .dialog-buttons-settings { display:flex; justify-content:center; gap:10px; margin-top:20px; }
+  </style>
+</head>
+<body>
+  <h1>Mellow_labs Pill Dispenser</h1>
+
+  <div class="container-grid">
+    <!-- Container 1 -->
+    <div class="container-block" id="container1-block">
+      <div class="container-header">
+        <h2>Container 1</h2>
+        <div>
+          <button onclick="openScheduleDialog(1, null)">+ Add Schedule</button>
+          <button onclick="openSettingsDialog(1)">Settings</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="container1-table">
+          <thead><tr><th>Days</th><th>Pills</th><th>Times</th><th style="width:50px;"></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Container 2 -->
+    <div class="container-block" id="container2-block">
+      <div class="container-header">
+        <h2>Container 2</h2>
+        <div>
+          <button onclick="openScheduleDialog(2, null)">+ Add Schedule</button>
+          <button onclick="openSettingsDialog(2)">Settings</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="container2-table">
+          <thead><tr><th>Days</th><th>Pills</th><th>Times</th><th style="width:50px;"></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Container 3 -->
+    <div class="container-block" id="container3-block">
+      <div class="container-header">
+        <h2>Container 3</h2>
+        <div>
+          <button onclick="openScheduleDialog(3, null)">+ Add Schedule</button>
+          <button onclick="openSettingsDialog(3)">Settings</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="container3-table">
+          <thead><tr><th>Days</th><th>Pills</th><th>Times</th><th style="width:50px;"></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Container 4 -->
+    <div class="container-block" id="container4-block">
+      <div class="container-header">
+        <h2>Container 4</h2>
+        <div>
+          <button onclick="openScheduleDialog(4, null)">+ Add Schedule</button>
+          <button onclick="openSettingsDialog(4)">Settings</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table id="container4-table">
+          <thead><tr><th>Days</th><th>Pills</th><th>Times</th><th style="width:50px;"></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collapsible Settings Panel -->
+  <div class="collapsible-header" onclick="toggleSettingsPanel()">Settings ▾</div>
+  <div class="collapsible-content" id="settingsPanel" style="display:none; justify-content: space-between; align-items:center;">
+    <!-- Left: RTC + Clock (clock shows HA/local time) -->
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <button id="setRTCButton" onclick="setRTC()">Set RTC</button>
+      <span id="clock" style="font-weight:bold; border:1px solid #ccc; padding:5px 8px; border-radius:5px;"></span>
+    </div>
+
+    <!-- Middle: Test Schedule Button -->
+    <div style="margin-top:10px; text-align:center;">
+      <button id="testScheduleButton" onclick="testSchedule()">Test Schedule</button>
+    </div>
+
+    <!-- Right: Dark Mode + Device ID -->
+    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <button type="button" id="toggleDarkButton" onclick="toggleDarkMode()">Dark Mode</button>
+      <label for="deviceIdInput">Device ID:</label>
+      <input type="text" id="deviceIdInput" placeholder="paste HA device_id" style="width:260px;" />
+      <button onclick="saveDeviceId()">Save</button>
+    </div>
+  </div>
+
+  <!-- Overlay -->
+  <div id="overlay"></div>
+
+  <!-- Schedule Dialog -->
+  <div id="scheduleDialog">
+    <div class="header">
+      <h2 id="dialogTitle">Add Schedule</h2>
+      <span class="close-btn" onclick="closeScheduleDialog()">×</span>
+    </div>
+    <div class="content">
+      <div class="everyday-container">
+        <button id="everydayBtn" onclick="toggleEveryday()">Everyday</button>
+      </div>
+      <div class="days-grid">
+        <button data-day="Monday" onclick="toggleDay(this)">Mon</button>
+        <button data-day="Tuesday" onclick="toggleDay(this)">Tue</button>
+        <button data-day="Wednesday" onclick="toggleDay(this)">Wed</button>
+        <button data-day="Thursday" onclick="toggleDay(this)">Thu</button>
+        <button data-day="Friday" onclick="toggleDay(this)">Fri</button>
+        <button data-day="Saturday" onclick="toggleDay(this)">Sat</button>
+        <button data-day="Sunday" onclick="toggleDay(this)">Sun</button>
+      </div>
+      <div class="pill-count">
+        <label>Pill Count:</label>
+        <div class="pill-counter">
+          <button class="minus-btn" onclick="decrementPillCount()">−</button>
+          <input type="text" id="pillCount" value="1" readonly>
+          <button class="plus-btn" onclick="incrementPillCount()">+</button>
+        </div>
+      </div>
+      <div class="time-inputs" id="timeInputs"></div>
+    </div>
+    <div class="footer">
+      <button class="save-btn" onclick="saveSchedule()">Save</button>
+      <button class="cancel-btn" onclick="closeScheduleDialog()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Settings Dialog (per container) -->
+  <div id="settingsDialog">
+    <h2 id="settingsDialogTitle">Container Settings</h2>
+    <div style="text-align:center; margin-bottom:15px;">
+      <button id="testMotorButton" onclick="testMotor()" style="margin-bottom:10px;">Test motor</button>
+    </div>
+    <div class="slider-group">
+      <label for="motorSpeed">Motor speed PWM: <span id="motorSpeedValue" class="slider-value"></span></label>
+      <input type="range" id="motorSpeed" min="0" max="255" value="128" oninput="document.getElementById('motorSpeedValue').textContent=this.value">
+    </div>
+    <div class="slider-group">
+      <label for="triggerThreshold">Trigger threshold: <span id="triggerThresholdValue" class="slider-value"></span></label>
+      <input type="range" id="triggerThreshold" min="0" max="3000" value="1500" oninput="document.getElementById('triggerThresholdValue').textContent=this.value">
+    </div>
+    <div class="dialog-buttons-settings">
+      <button id="saveSettingsBtn" onclick="saveSettings()">Save</button>
+      <button id="CancelSettingsBtn" onclick="closeSettingsDialog()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // ======= Home Assistant websocket helper =======
+    const callWS = (type, payload = {}) =>
+      window.hassConnection.then(({ conn }) => conn.sendMessagePromise({ type, ...payload }));
+
+    // ======= Global state =======
+    let currentContainer = null;
+    let editingScheduleId = null;
+    let currentSettingsContainer = null;
+    let schedulesData = [];    // array of {id, container, days[], pillCount, times[]}
+    let settingsData = {};     // object keyed by container plus theme + device_id
+
+    // Colors per container
+    const containerColors = { 1: "#007bff", 2: "#dc3545", 3: "#ffc107", 4: "#28a745" };
+
+    // ======= Storage via HA (replaces REST) =======
+    async function loadSchedules() {
+      try { schedulesData = await callWS('mellow_pill/get_schedules'); }
+      catch(e){ console.error('loadSchedules', e); schedulesData = []; }
+    }
+
+    async function saveSchedulesToServer() {
+      try { await callWS('mellow_pill/save_schedules', { schedules: schedulesData }); }
+      catch(e){ console.error('saveSchedules', e); }
+    }
+
+    async function loadSettings() {
+      try { settingsData = await callWS('mellow_pill/get_settings') || {}; }
+      catch(e){ console.error('loadSettings', e); settingsData = {}; }
+    }
+
+    async function saveSettingsToServer() {
+      try { await callWS('mellow_pill/save_settings', { settings: settingsData }); }
+      catch(e){ console.error('saveSettings', e); }
+    }
+
+    // Device ID helpers
+    function saveDeviceId(){
+      const v = document.getElementById('deviceIdInput').value.trim();
+      if(!settingsData) settingsData = {};
+      settingsData.device_id = v;
+      saveSettingsToServer();
+    }
+    function getDeviceId(){ return (settingsData && settingsData.device_id) ? settingsData.device_id : null; }
+
+    // ======= Clock (HA/local browser time) =======
+    function updateClock(){
+      const clockElement = document.getElementById('clock');
+      const now = new Date();
+      clockElement.textContent = now.toLocaleString();
+    }
+
+    // ======= Collapsible settings panel =======
+    function toggleSettingsPanel(){
+      const panel = document.getElementById('settingsPanel');
+      const header = document.querySelector('.collapsible-header');
+      if(panel.style.display === 'flex'){ panel.style.display = 'none'; header.textContent = 'Settings ▾'; }
+      else { panel.style.display = 'flex'; header.textContent = 'Settings ▴'; }
+    }
+
+    // ======= Dark Mode =======
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark-mode');
+      const toggleButton = document.getElementById('toggleDarkButton');
+      if(document.body.classList.contains('dark-mode')){ settingsData.theme = 'dark'; toggleButton.textContent = 'Light Mode'; }
+      else { settingsData.theme = 'light'; toggleButton.textContent = 'Dark Mode'; }
+      saveSettingsToServer();
+    }
+
+    // ======= Schedule Dialog =======
+    function openScheduleDialog(containerId, scheduleId){
+      currentContainer = containerId; editingScheduleId = scheduleId; resetDialog();
+      const color = containerColors[containerId] || '#007bff';
+      const scheduleDialog = document.getElementById('scheduleDialog');
+      scheduleDialog.querySelector('.header').style.background = color;
+      scheduleDialog.style.setProperty('--accent-color', color);
+      if(editingScheduleId !== null){
+        const s = schedulesData.find(s => s.id === editingScheduleId);
+        if(s){
+          document.getElementById('dialogTitle').textContent = 'Edit Schedule';
+          const allDays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+          const everydayBtn = document.getElementById('everydayBtn');
+          if(allDays.every(d => s.days.includes(d))) everydayBtn.classList.add('active');
+          document.querySelectorAll('.days-grid button').forEach(btn => { if(s.days.includes(btn.getAttribute('data-day'))) btn.classList.add('active'); });
+          document.getElementById('pillCount').value = s.pillCount;
+          updateTimeFields();
+          const timeInputs = document.querySelectorAll('.time-inputs input[type="time"]');
+          s.times.forEach((t, i) => { if(timeInputs[i]) timeInputs[i].value = t; });
+        }
+      } else { document.getElementById('dialogTitle').textContent = 'Add Schedule'; }
+      document.getElementById('overlay').style.display = 'block';
+      scheduleDialog.style.display = 'block';
+    }
+    function closeScheduleDialog(){ document.getElementById('overlay').style.display='none'; document.getElementById('scheduleDialog').style.display='none'; }
+    function resetDialog(){ document.getElementById('everydayBtn').classList.remove('active'); document.querySelectorAll('.days-grid button').forEach(btn=>btn.classList.remove('active')); document.getElementById('pillCount').value=1; updateTimeFields(); }
+    function toggleDay(btn){ btn.classList.toggle('active'); }
+    function toggleEveryday(){ const btn = document.getElementById('everydayBtn'); btn.classList.toggle('active'); if(btn.classList.contains('active')) document.querySelectorAll('.days-grid button').forEach(b=>b.classList.remove('active')); }
+    function updateTimeFields(){ const c = parseInt(document.getElementById('pillCount').value)||1; const div = document.getElementById('timeInputs'); div.innerHTML=''; for(let i=1;i<=c;i++){ const d=document.createElement('div'); d.innerHTML=`<label>Time #${i}:</label><input type="time" value="08:00">`; div.appendChild(d);} }
+    function incrementPillCount(){ const el = document.getElementById('pillCount'); let v = parseInt(el.value)||1; el.value = ++v; updateTimeFields(); }
+    function decrementPillCount(){ const el = document.getElementById('pillCount'); let v = parseInt(el.value)||1; if(v>1) v--; el.value=v; updateTimeFields(); }
+
+    async function saveSchedule(){
+      let days = []; const everydayBtn = document.getElementById('everydayBtn');
+      if(everydayBtn.classList.contains('active')){ days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]; }
+      else { document.querySelectorAll('.days-grid button.active').forEach(btn=>days.push(btn.getAttribute('data-day'))); }
+      const pillCount = parseInt(document.getElementById('pillCount').value)||1;
+      const times = []; document.querySelectorAll('.time-inputs input[type="time"]').forEach(input=>{ if(input.value) times.push(input.value); });
+      if(editingScheduleId===null){ schedulesData.push({ id: Date.now(), container: currentContainer, days, pillCount, times }); }
+      else { schedulesData = schedulesData.map(s => s.id===editingScheduleId ? { ...s, container: currentContainer, days, pillCount, times } : s); }
+      await saveSchedulesToServer(); closeScheduleDialog(); renderAllSchedules();
+    }
+    async function deleteSchedule(id){ schedulesData = schedulesData.filter(s => s.id!==id); await saveSchedulesToServer(); renderAllSchedules(); }
+
+    function renderAllSchedules(){
+      for(let c=1;c<=4;c++){ const tb = document.querySelector(`#container${c}-table tbody`); if(tb) tb.innerHTML=''; }
+      schedulesData.forEach(sch => {
+        const tb = document.querySelector(`#container${sch.container}-table tbody`); if(!tb) return;
+        const row = document.createElement('tr');
+        const daysCell = document.createElement('td'); daysCell.textContent = sch.days.join(', ');
+        const pillCell = document.createElement('td'); pillCell.textContent = sch.pillCount;
+        const timesCell = document.createElement('td'); timesCell.textContent = sch.times.join(', ');
+        const gearCell = document.createElement('td'); gearCell.style.position='relative';
+        const gearSpan = document.createElement('span'); gearSpan.className='gear-icon'; gearSpan.textContent='⚙'; gearSpan.onclick = (e)=>{ e.stopPropagation(); toggleMenu(sch.id, e); };
+        const menuDiv = document.createElement('div'); menuDiv.className='gear-menu'; menuDiv.id=`menu-${sch.id}`;
+        const editBtn = document.createElement('button'); editBtn.textContent='Edit'; editBtn.onclick=()=>{ openScheduleDialog(sch.container, sch.id); toggleMenu(sch.id); };
+        const deleteBtn = document.createElement('button'); deleteBtn.textContent='Delete'; deleteBtn.onclick=()=>{ deleteSchedule(sch.id); toggleMenu(sch.id); };
+        menuDiv.appendChild(editBtn); menuDiv.appendChild(deleteBtn);
+        gearCell.appendChild(gearSpan);
+        row.appendChild(daysCell); row.appendChild(pillCell); row.appendChild(timesCell); row.appendChild(gearCell);
+        tb.appendChild(row);
+        document.body.appendChild(menuDiv);
+      });
+    }
+
+    function toggleMenu(id, event){ const m = document.getElementById(`menu-${id}`); if(!m) return; closeAllMenus(id); if(m.style.display==='block'){ m.style.display='none'; } else { m.style.display='block'; if(event){ const r=event.target.getBoundingClientRect(); m.style.left=`${r.left + window.scrollX - 15}px`; m.style.top=`${r.bottom + window.scrollY}px`; } } }
+    function closeAllMenus(exceptId=null){ document.querySelectorAll('.gear-menu').forEach(m => { if(m.id!==`menu-${exceptId}`) m.style.display='none'; }); }
+    function closeAllMenusOnOutsideClick(e){ if(e.target.closest('.gear-menu') || e.target.closest('.gear-icon')) return; closeAllMenus(); }
+
+    // ======= Settings Dialog (per container) =======
+    function openSettingsDialog(containerId){
+      currentSettingsContainer = containerId;
+      let saved = settingsData[containerId] || {};
+      const motorSpeedSlider = document.getElementById('motorSpeed');
+      const triggerThresholdSlider = document.getElementById('triggerThreshold');
+      motorSpeedSlider.value = (saved.motorSpeed !== undefined) ? saved.motorSpeed : 128;
+      triggerThresholdSlider.value = (saved.triggerThreshold !== undefined) ? saved.triggerThreshold : 1500;
+      document.getElementById('motorSpeedValue').textContent = motorSpeedSlider.value;
+      document.getElementById('triggerThresholdValue').textContent = triggerThresholdSlider.value;
+      const color = containerColors[containerId] || '#007bff';
+      let dlg = document.getElementById('settingsDialog');
+      dlg.style.borderTopColor = color; dlg.querySelector('h2').style.color = color;
+      document.getElementById('settingsDialogTitle').textContent = `Container ${containerId} Settings`;
+      document.getElementById('testMotorButton').style.backgroundColor = color;
+      document.getElementById('CancelSettingsBtn').style.backgroundColor = color;
+      document.getElementById('saveSettingsBtn').style.backgroundColor = color;
+      motorSpeedSlider.style.accentColor = color; triggerThresholdSlider.style.accentColor = color;
+      document.getElementById('overlay').style.display='block'; dlg.style.display='block'; closeAllMenus();
+    }
+    function closeSettingsDialog(){ document.getElementById('overlay').style.display='none'; document.getElementById('settingsDialog').style.display='none'; }
+
+    async function saveSettings(){
+      const motorSpeed = parseInt(document.getElementById('motorSpeed').value);
+      const triggerThreshold = parseInt(document.getElementById('triggerThreshold').value);
+      settingsData[currentSettingsContainer] = { motorSpeed, triggerThreshold };
+      await saveSettingsToServer();
+      closeSettingsDialog();
+    }
+
+    // Call ESPHome via backend WS: mellow_pill/test_motor
+    function testMotor(){
+      const motorSpeed = +document.getElementById('motorSpeed').value;
+      const triggerThreshold = +document.getElementById('triggerThreshold').value;
+      const deviceId = getDeviceId();
+      if(!deviceId){ alert('Please set Device ID first in Settings.'); return; }
+      callWS('mellow_pill/test_motor', {
+        device_id: deviceId,
+        container: currentSettingsContainer,
+        motor_speed: motorSpeed,
+        trigger_threshold: triggerThreshold
+      }).then(()=>console.log('Motor test sent')).catch(err=>{ console.error('test_motor', err); alert('Error: see console'); });
+    }
+
+    // Test Schedule: immediately enqueue one dispense for each schedule entry (like your original /testSchedule)
+    function testSchedule(){
+      const deviceId = getDeviceId(); if(!deviceId){ alert('Set Device ID first'); return; }
+      if(!Array.isArray(schedulesData) || schedulesData.length===0){ alert('No schedules'); return; }
+      const promises = [];
+      for(const sch of schedulesData){
+        const c = sch.container; const pills = sch.pillCount || 1;
+        const contSettings = (settingsData && settingsData[c]) ? settingsData[c] : { motorSpeed: 80, triggerThreshold: 400 };
+        promises.push(
+          callWS('mellow_pill/dispense', {
+            device_id: deviceId,
+            container: c,
+            pills: pills,
+            speed: contSettings.motorSpeed || 80,
+            threshold: contSettings.triggerThreshold || 400
+          })
+        );
+      }
+      Promise.all(promises).then(()=> alert('Test Schedule initiated')).catch(err=>{ console.error(err); alert('Error initiating test schedule'); });
+    }
+
+    // ======= Page init =======
+    window.onload = async function(){
+      await loadSettings();
+      await loadSchedules();
+
+      // Dark theme from saved setting
+      if(settingsData.theme === 'dark') document.body.classList.add('dark-mode');
+      document.getElementById('toggleDarkButton').textContent = document.body.classList.contains('dark-mode') ? 'Light Mode' : 'Dark Mode';
+
+      // Pre-fill device id
+      if(settingsData.device_id) document.getElementById('deviceIdInput').value = settingsData.device_id;
+
+      renderAllSchedules();
+      document.addEventListener('click', closeAllMenusOnOutsideClick);
+
+      // Accent colours
+      document.getElementById('container1-block').style.borderTopColor = containerColors[1];
+      document.getElementById('container2-block').style.borderTopColor = containerColors[2];
+      document.getElementById('container3-block').style.borderTopColor = containerColors[3];
+      document.getElementById('container4-block').style.borderTopColor = containerColors[4];
+      document.querySelector('#container1-block .container-header').style.backgroundColor = containerColors[1];
+      document.querySelector('#container2-block .container-header').style.backgroundColor = containerColors[2];
+      document.querySelector('#container3-block .container-header').style.backgroundColor = containerColors[3];
+      document.querySelector('#container4-block .container-header').style.backgroundColor = containerColors[4];
+
+      document.getElementById('motorSpeedValue').textContent = document.getElementById('motorSpeed').value;
+      document.getElementById('triggerThresholdValue').textContent = document.getElementById('triggerThreshold').value;
+
+      updateTimeFields();
+      updateClock(); setInterval(updateClock, 1000);
+    };
+
+    // Stub for Set RTC (optional: wire up a backend WS command and ESPHome service)
+    function setRTC(){
+      alert('Set RTC: wire this to a websocket command that calls your ESPHome set-RTC service.');
+    }
+  </script>
+</body>
+</html>
