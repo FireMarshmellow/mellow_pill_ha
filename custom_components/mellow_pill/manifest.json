@@ -1,11 +1,12 @@
 {
   "domain": "mellow_pill",
   "name": "Mellow_labs Pill Dispenser",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "documentation": "https://github.com/FireMarshmellow/mellow_pill_ha",
   "issue_tracker": "https://github.com/FireMarshmellow/mellow_pill_ha/issues",
   "codeowners": ["@FireMarshmellow"],
   "iot_class": "local_push",
   "requirements": [],
-  "dependencies": ["websocket_api", "http"]
+  "dependencies": ["websocket_api", "http", "frontend"],
+  "config_flow": true
 }
