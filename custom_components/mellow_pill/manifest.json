@@ -1,7 +1,7 @@
 {
   "domain": "mellow_pill",
   "name": "Mellow_labs Pill Dispenser",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "documentation": "https://github.com/FireMarshmellow/mellow_pill_ha",
   "issue_tracker": "https://github.com/FireMarshmellow/mellow_pill_ha/issues",
   "codeowners": ["@FireMarshmellow"],
